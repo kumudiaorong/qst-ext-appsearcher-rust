@@ -1,0 +1,69 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'qst-ext-appsearcher-rust'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=qst-ext-appsearcher-rust"
+                ],
+                "filter": {
+                    "name": "qst-ext-appsearcher-rust",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'qst-e-a'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=qst-e-a",
+                    "--package=qst-ext-appsearcher-rust"
+                ],
+                "filter": {
+                    "name": "qst-e-a",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "--uri",
+                "http://127.0.0.1:50001",
+                "--id",
+                "0"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'qst-e-a'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=qst-e-a",
+                    "--package=qst-ext-appsearcher-rust"
+                ],
+                "filter": {
+                    "name": "qst-e-a",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

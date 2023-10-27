@@ -1,0 +1,3 @@
+[submodule "qst-grpc"]
+	path = qst-grpc
+	url = https://github.com/kumudiaorong/qst-grpc
