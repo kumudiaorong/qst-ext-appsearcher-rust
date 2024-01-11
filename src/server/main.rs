@@ -1,6 +1,7 @@
 use super::file::extension::DisplayList;
-use super::file::{daemon, defs, extension};
+use super::file::{common, daemon, extension};
 use crate::config;
+use common::Empty;
 use std::borrow::BorrowMut;
 use std::collections::HashMap;
 use std::sync::Mutex;
@@ -8,7 +9,7 @@ use xlog_rs::log;
 pub struct Main {
     id: String,
     addr: String,
-    cli: Mutex<daemon::ext_client::ExtClient<tonic::transport::Channel>>,
+    cli: Mutex<extension::ext_client::ExtClient<tonic::transport::Channel>>,
     config: Mutex<config::Config>,
     children: Mutex<HashMap<u32, Vec<std::process::Child>>>,
 }
@@ -20,9 +21,9 @@ impl Main {
         match ep.connect().await {
             Ok(c) => {
                 log::info(format!("connected to {}", ep.uri()).as_str());
-                client = daemon::ext_client::ExtClient::new(c);
+                client = extension::ext_client::ExtClient::new(c);
                 client
-                    .set_ext_addr(daemon::ExtAddrWithId {
+                    .set_ext_addr(extension::ExtAddrWithId {
                         id: id.clone(),
                         addr: addr.clone(),
                     })
@@ -71,7 +72,7 @@ impl extension::main_server::Main for Main {
     async fn submit(
         &self,
         request: tonic::Request<extension::SubmitHint>,
-    ) -> std::result::Result<tonic::Response<defs::Empty>, tonic::Status> {
+    ) -> std::result::Result<tonic::Response<Empty>, tonic::Status> {
         let shint = request.into_inner();
         self.config
             .lock()
@@ -97,6 +98,6 @@ impl extension::main_server::Main for Main {
                     .or_default()
                     .push(child)
             })
-            .map(|_| tonic::Response::new(defs::Empty {}))
+            .map(|_| tonic::Response::new(Empty {}))
     }
 }

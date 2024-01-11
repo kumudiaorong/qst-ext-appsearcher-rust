@@ -4,7 +4,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .build_server(true)
         // .out_dir("src/comm")
         .compile(
-            &["defs.proto", "daemon.proto", "extension.proto"],
+            &["common.proto", "daemon.proto", "extension.proto"],
             &["qst-grpc/src"],
         )?;
     Ok(())

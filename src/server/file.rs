@@ -4,6 +4,6 @@ pub(super) mod daemon {
 pub(super) mod extension {
     tonic::include_proto!("extension");
 }
-pub(super) mod defs {
-    tonic::include_proto!("defs");
+pub(super) mod common {
+    tonic::include_proto!("common");
 }
