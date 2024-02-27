@@ -3,12 +3,6 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use xlog_rs::log;
 
-fn cfg_dir() -> Result<String, std::env::VarError> {
-    std::option_env!("HOME")
-        .ok_or(std::env::VarError::NotPresent)
-        .map(|s| s.to_string() + "/.config/qst")
-}
-
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub struct Appattr {
     pub dir: String,
@@ -23,6 +17,14 @@ pub struct File {
     pub system_last_update: std::time::SystemTime,
     pub apps: HashMap<String, Appattr>,
 }
+impl Default for File {
+    fn default() -> Self {
+        Self {
+            system_last_update: std::time::SystemTime::now(),
+            apps: HashMap::default(),
+        }
+    }
+}
 #[derive(Debug)]
 pub struct App {
     pub name: String,
@@ -31,36 +33,11 @@ pub struct App {
 }
 #[derive(Debug)]
 pub struct Config {
-    pub system_last_update: std::time::SystemTime,
-    pub file_last_update: Option<std::time::SystemTime>,
     pub trie: super::trie::Trie<Arc<App>>,
     pub by_id: HashMap<u32, Arc<App>>,
+    pub file: config_rs::File<File>,
 }
 
-// fn extract_app(path: String) -> Option<(String, Appattr)> {
-//     std::fs::read_to_string(path.clone()).map_or_else(
-//         |e| {
-//             log::warn(format!("can not read {}: {}", path, e).as_str());
-//             None
-//         },
-//         |content: String| {
-//             RE.captures(&content).map(|captures| {
-//                 let exec = captures["exec"].to_string();
-//                 (
-//                     captures["name"].to_string(),
-//                     Appattr {
-//                         dir: exec
-//                             .rsplit_once('/')
-//                             .map_or("/usr/local/bin", |(dir, _)| dir)
-//                             .to_string(),
-//                         exec,
-//                         freq: 0,
-//                     },
-//                 )
-//             })
-//         },
-//     )
-// }
 fn extract_app(content: &str) -> Option<(String, Appattr)> {
     static FILE: once_cell::sync::Lazy<regex::Regex> = once_cell::sync::Lazy::new(|| {
         regex::Regex::new(
@@ -172,81 +149,70 @@ fn update_system(src: &mut HashMap<String, Appattr>) {
 
 impl Config {
     pub fn new() -> Config {
-        let dir = cfg_dir().expect("Failed to get config directory");
-        let (mut file, sf) = match std::fs::File::open(dir.clone() + "/appsearcher.yaml") {
-            Ok(sf) => (serde_yaml::from_reader(&sf).unwrap(), sf),
-            Err(_) => {
-                std::fs::create_dir_all(&dir)
-                    .unwrap_or_else(|_| todo!("Failed to create ~/.config/qst/ directory"));
-                let sf = std::fs::OpenOptions::new()
-                    .create(true)
-                    .write(true)
-                    .open(dir + "/appsearcher.yaml")
-                    .unwrap_or_else(|_| {
-                        todo!("Failed to create ~/.config/qst/appsearcher.yaml file")
-                    });
-                let f = File {
-                    system_last_update: std::time::SystemTime::now(),
-                    apps: std::collections::HashMap::new(),
-                };
-                serde_yaml::to_writer(&sf, &f).unwrap_or_else(|_| {
-                    todo!("Failed to create default ~/.config/qst/appsearcher.yaml file")
-                });
-                (f, sf)
-            }
-        };
-        if let Err(e) = std::fs::metadata("/usr/share/applications")
-            .and_then(|m| m.modified())
-            .and_then(|t| {
-                if file.system_last_update != t {
-                    file.system_last_update = t;
-                    Err(std::io::Error::new(
-                        std::io::ErrorKind::Other,
-                        "need update",
-                    ))
-                } else {
-                    Ok(())
-                }
-            })
-        {
-            log::info(format!("update system: {}", e).as_str());
-            update_system(&mut file.apps);
-        };
+        let path = dirs::home_dir()
+            .unwrap()
+            .join(".config/qst/appsearcher.toml");
+        let mut file: config_rs::File<File> = config_rs::File::new().path(path.to_str().unwrap());
+        let _ = file.load();
+        // let dir = cfg_dir().expect("Failed to get config directory");
+        // let (mut file, sf) = match std::fs::File::open(dir.clone() + "/appsearcher.yaml") {
+        //     Ok(sf) => (serde_yaml::from_reader(&sf).unwrap(), sf),
+        //     Err(_) => {
+        //         std::fs::create_dir_all(&dir)
+        //             .unwrap_or_else(|_| todo!("Failed to create ~/.config/qst/ directory"));
+        //         let sf = std::fs::OpenOptions::new()
+        //             .create(true)
+        //             .write(true)
+        //             .open(dir + "/appsearcher.yaml")
+        //             .unwrap_or_else(|_| {
+        //                 todo!("Failed to create ~/.config/qst/appsearcher.yaml file")
+        //             });
+        //         let f = File {
+        //             system_last_update: std::time::SystemTime::now(),
+        //             apps: std::collections::HashMap::new(),
+        //         };
+        //         serde_yaml::to_writer(&sf, &f).unwrap_or_else(|_| {
+        //             todo!("Failed to create default ~/.config/qst/appsearcher.yaml file")
+        //         });
+        //         (f, sf)
+        //     }
+        // };
+        // if let Err(e) = std::fs::metadata("/usr/share/applications")
+        //     .and_then(|m| m.modified())
+        //     .and_then(|t| {
+        //         if file.system_last_update != t {
+        //             file.system_last_update = t;
+        //             Err(std::io::Error::new(
+        //                 std::io::ErrorKind::Other,
+        //                 "need update",
+        //             ))
+        //         } else {
+        //             Ok(())
+        //         }
+        //     })
+        // {
+        //     log::info(format!("update system: {}", e).as_str());
+        update_system(&mut file.inner.apps);
         let mut id: u32 = 0;
         let mut trie = super::trie::Trie::new();
         let mut by_id = HashMap::new();
-        file.apps.into_iter().for_each(|(name, attr)| {
-            let app = Arc::new(App { name, id, attr });
-            trie.insert(app.name.clone(), app.clone());
-            by_id.insert(id, app);
-            id += 1;
-        });
-        Self {
-            file_last_update: sf.metadata().and_then(|m| m.modified()).ok(),
-            system_last_update: file.system_last_update,
-            by_id,
-            trie,
-        }
+        file.inner
+            .apps
+            .clone()
+            .into_iter()
+            .for_each(|(name, attr)| {
+                let app = Arc::new(App { name, id, attr });
+                if app.name.starts_with("Visual Studio Code") {
+                    println!("{:?}", app);
+                }
+                trie.insert(app.name.clone(), app.clone());
+                by_id.insert(id, app);
+                id += 1;
+            });
+        Self { by_id, trie, file }
     }
 
     pub fn save(&self) {
-        let dir = cfg_dir().expect("Failed to get config directory");
-        let f = std::fs::OpenOptions::new()
-            .create(true)
-            .write(true)
-            .open(dir + "/appsearcher.yaml")
-            .unwrap_or_else(|_| todo!("Failed to create ~/.config/qst/appsearcher.yaml file"));
-        serde_yaml::to_writer(
-            &f,
-            &File {
-                system_last_update: self.system_last_update,
-                apps: self
-                    .by_id
-                    .iter()
-                    .map(|(_, app)| (app.name.clone(), app.attr.clone()))
-                    .collect(),
-            },
-        )
-        .unwrap_or_else(|_| todo!("Failed to create default ~/.config/qst/appsearcher.yaml file"));
+        self.file.save();
     }
 }

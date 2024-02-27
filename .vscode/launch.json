@@ -42,7 +42,7 @@
                 "--uri",
                 "http://127.0.0.1:50001",
                 "--id",
-                "0"
+                "test"
             ],
             "cwd": "${workspaceFolder}"
         },
@@ -64,6 +64,24 @@
             },
             "args": [],
             "cwd": "${workspaceFolder}"
-        }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'trie_test'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=trie_test",
+                    "--package=qst-ext-appsearcher-rust"
+                ],
+                "filter": {
+                    "name": "trie_test",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
     ]
 }

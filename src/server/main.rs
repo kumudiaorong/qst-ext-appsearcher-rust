@@ -1,8 +1,6 @@
-use super::file::extension::DisplayList;
 use super::file::{common, daemon, extension};
 use crate::config;
 use common::Empty;
-use std::borrow::BorrowMut;
 use std::collections::HashMap;
 use std::sync::Mutex;
 use xlog_rs::log;
