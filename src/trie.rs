@@ -1,9 +1,8 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 #[derive(Debug)]
 pub struct Trie<T> {
     root: Node<T>,
     miss_count: usize,
-    extra_count: usize,
     ignore_case: bool,
 }
 
@@ -23,7 +22,6 @@ where
                 values: Vec::new(),
             },
             miss_count: 3,
-            extra_count: 3,
             ignore_case: true,
         }
     }
@@ -57,6 +55,7 @@ where
             prefix = prefix.to_lowercase();
         }
         let mut valid_nodes = Vec::new();
+        let mut dedup = HashSet::new();
         let mut stack = Vec::new();
         stack.push((&self.root, prefix.chars(), 0));
         while let Some((cur_node, mut words, miss_count)) = stack.pop() {
@@ -73,20 +72,23 @@ where
                     }
                 }
                 None => {
-                    valid_nodes.push(cur_node);
+                    if dedup.insert(cur_node as *const Node<T>) {
+                        valid_nodes.push(cur_node);
+                    }
                 }
             }
         }
+        dedup.clear();
         let mut over = Vec::new();
         while let Some(n) = valid_nodes.pop() {
-            if !n.values.is_empty() {
+            if !n.values.is_empty() && dedup.insert(n as *const Node<T>) {
                 over.push(n);
             }
-            for node in n.children.values().rev() {
+            for node in n.children.values() {
                 valid_nodes.push(node);
             }
         }
-        over.iter().for_each(|n| result.extend(&n.values));
+        over.iter().rev().for_each(|n| result.extend(&n.values));
         result
     }
 }
