@@ -22,12 +22,13 @@ serde_yaml = "0.9.25"
 tokio = { version = "1.33.0", features = ["full"] }
 tokio-stream = { version = "0.1.5", features = ["net"] }
 tonic = "0.10.2"
-xlog-rs = "0.1.0"
+xlog-rs = "0.3.0"
 uuid = { version = "1.5.0", features = ["v4", "fast-rng", "macro-diagnostics"] }
 regex = { version = "1.10.2" }
 once_cell = { version = "1.18.0" }
-config-rs = { git = "https://github.com/kumudiaorong/config-rs.git" }
+xcfg-rs = { version = "0.1.0" }
 dirs = "5.0.1"
+clap = { version = "4.5.1", features = ["derive"] }
 
 [build-dependencies]
 tonic-build = { version = "0.10.2", features = ["prost"] }
