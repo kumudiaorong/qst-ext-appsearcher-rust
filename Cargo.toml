@@ -27,7 +27,7 @@ serde_yaml = "0.9.25"
 tokio = { version = "1.33.0", features = ["rt-multi-thread", "macros"] }
 tokio-stream = { version = "0.1.5", features = ["net"] }
 tonic = "0.10.2"
-xlog-rs = "0.3.0"
+xlog-rs = { version = "0.3.1" }
 uuid = { version = "1.5.0", features = ["v4", "fast-rng", "macro-diagnostics"] }
 regex = { version = "1.10.2" }
 once_cell = { version = "1.18.0" }

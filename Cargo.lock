@@ -1467,6 +1467,6 @@ dependencies = [
 
 [[package]]
 name = "xlog-rs"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c6697370a27503bbe8102f8f2cc6b78a3e6c883aae05c42d9c392cf59a68b5b1"
+checksum = "02b73cf3a5aa3f8fa5e416591f45bd5689da942486f6df7add0bbef5d9d13a9a"

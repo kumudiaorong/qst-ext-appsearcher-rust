@@ -4,7 +4,7 @@ use common::Empty;
 use extension::ext_client::ExtClient;
 use std::{collections::HashMap, sync::Mutex};
 use tonic::Status;
-use xlog_rs::{debug, error, info};
+use xlog::{debug, error, info};
 pub struct Main {
     id: String,
     addr: String,

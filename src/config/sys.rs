@@ -2,7 +2,7 @@
 mod inner {
     use crate::config::Appattr;
     use std::collections::HashMap;
-    use xlog_rs::warn;
+    use xlog::warn;
     fn extract_app(content: &str) -> Option<(String, Appattr)> {
         static FILE: once_cell::sync::Lazy<regex::Regex> = once_cell::sync::Lazy::new(|| {
             regex::Regex::new(

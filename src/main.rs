@@ -1,9 +1,10 @@
 use appsearcher::{arg, server};
 use clap::Parser;
 use tonic::transport;
+use xlog::log;
 #[tokio::main]
 async fn main() -> Result<(), transport::Error> {
-    xlog_rs::log::init(std::io::stdout(), xlog_rs::log::Level::Trace);
+    log::init(std::io::stdout(), log::Level::Trace);
     let args = arg::Args::parse();
     let tl = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = tl.local_addr().unwrap().to_string();
