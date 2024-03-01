@@ -44,6 +44,7 @@ impl Config {
             .join(".config/qst/appsearcher.toml");
         let mut file: ConfigFile<File> = ConfigFile::new().path(path.to_str().unwrap());
         let _ = file.load();
+        let _ = file.save();
         sys::update_system(&mut file.inner.apps);
         let mut id: u32 = 0;
         let mut trie = Trie::new();
@@ -60,11 +61,16 @@ impl Config {
         });
         let file = Arc::new(file);
         let move_file = file.clone();
-        spawn(|| match xcfg::keep::Saver::new(move_file).run() {
-            Ok(xcfg::keep::Action::TermSave) => {
-                std::process::exit(0);
+        spawn(|| {
+            let saver = xcfg::keep::Saver::new(move_file);
+            loop {
+                match saver.run() {
+                    Ok(xcfg::keep::Action::TermSave) => {
+                        std::process::exit(0);
+                    }
+                    _ => {}
+                }
             }
-            _ => {}
         });
         Self { by_id, trie, file }
     }
