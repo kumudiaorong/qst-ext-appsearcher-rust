@@ -1,4 +1,4 @@
 pub mod arg;
-pub mod config;
+mod config;
 pub mod server;
 mod trie;
