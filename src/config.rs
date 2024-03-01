@@ -1,9 +1,8 @@
 mod sys;
-use super::trie::Trie;
+use crate::trie::Trie;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use std::sync::Arc;
-use xcfg_rs::File as ConfigFile;
+use std::{collections::HashMap, sync::Arc, thread::spawn};
+use xcfg::File as ConfigFile;
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub struct Appattr {
@@ -35,7 +34,7 @@ pub struct App {
 pub struct Config {
     pub trie: Trie<Arc<App>>,
     pub by_id: HashMap<u32, Arc<App>>,
-    pub file: xcfg_rs::File<File>,
+    pub file: Arc<ConfigFile<File>>,
 }
 
 impl Config {
@@ -49,20 +48,28 @@ impl Config {
         let mut id: u32 = 0;
         let mut trie = Trie::new();
         let mut by_id = HashMap::new();
-        file.inner
-            .apps
-            .clone()
-            .into_iter()
-            .for_each(|(name, attr)| {
-                let app = Arc::new(App { name, id, attr });
-                trie.insert(app.name.clone(), app.clone());
-                by_id.insert(id, app);
-                id += 1;
+        file.inner.apps.iter().for_each(|(name, attr)| {
+            let app = Arc::new(App {
+                name: name.clone(),
+                id,
+                attr: attr.clone(),
             });
+            trie.insert(app.name.clone(), app.clone());
+            by_id.insert(id, app);
+            id += 1;
+        });
+        let file = Arc::new(file);
+        let move_file = file.clone();
+        spawn(|| match xcfg::keep::Saver::new(move_file).run() {
+            Ok(xcfg::keep::Action::TermSave) => {
+                std::process::exit(0);
+            }
+            _ => {}
+        });
         Self { by_id, trie, file }
     }
 
     pub fn save(&self) {
-        self.file.save();
+        self.file.save().unwrap();
     }
 }
