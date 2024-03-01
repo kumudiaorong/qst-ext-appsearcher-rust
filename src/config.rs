@@ -1,8 +1,12 @@
 mod sys;
 use crate::trie::Trie;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, sync::Arc, thread::spawn};
-use xcfg::File as ConfigFile;
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+    thread::spawn,
+};
+use xcfg::File as XFile;
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub struct Appattr {
@@ -14,10 +18,10 @@ pub struct Appattr {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct File {
+pub struct Info {
     pub apps: HashMap<String, Appattr>,
 }
-impl Default for File {
+impl Default for Info {
     fn default() -> Self {
         Self {
             apps: HashMap::default(),
@@ -34,7 +38,7 @@ pub struct App {
 pub struct Config {
     pub trie: Trie<Arc<App>>,
     pub by_id: HashMap<u32, Arc<App>>,
-    pub file: Arc<ConfigFile<File>>,
+    pub file: Arc<Mutex<XFile<Info>>>,
 }
 
 impl Config {
@@ -42,7 +46,7 @@ impl Config {
         let path = dirs::home_dir()
             .unwrap()
             .join(".config/qst/appsearcher.toml");
-        let mut file: ConfigFile<File> = ConfigFile::new().path(path.to_str().unwrap());
+        let mut file: XFile<Info> = XFile::new().path(path.to_str().unwrap());
         let _ = file.load();
         let _ = file.save();
         sys::update_system(&mut file.inner.apps);
@@ -59,7 +63,7 @@ impl Config {
             by_id.insert(id, app);
             id += 1;
         });
-        let file = Arc::new(file);
+        let file = Arc::new(Mutex::new(file));
         let move_file = file.clone();
         spawn(|| {
             let saver = xcfg::keep::Saver::new(move_file);
@@ -76,6 +80,6 @@ impl Config {
     }
 
     pub fn save(&self) {
-        self.file.save().unwrap();
+        self.file.lock().unwrap().save().unwrap();
     }
 }

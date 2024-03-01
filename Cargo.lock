@@ -1456,9 +1456,9 @@ dependencies = [
 
 [[package]]
 name = "xcfg-rs"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ae21cfcd68a2baaed1421dd439edaad49e52e249897cfa64565433236a379e78"
+checksum = "97001c47d47af6a168fde48cf2c196a1bc7d8be203c3edcc625436a8b6a29ced"
 dependencies = [
  "serde",
  "signal-hook",
