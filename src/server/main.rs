@@ -24,7 +24,7 @@ impl Main {
                 client
                     .set_ext_addr(extension::ExtAddrWithId {
                         id: id.clone(),
-                        addr: addr.clone(),
+                        addr: "http://".to_owned() + &addr,
                     })
                     .await
                     .unwrap();
