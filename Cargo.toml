@@ -24,14 +24,15 @@ bench = false
 prost = { version = "0.12.3" }
 serde = { version = "1.0.197", features = ["derive"] }
 serde_yaml = "0.9.32"
-tokio = { version = "1.33.0", features = ["rt-multi-thread", "macros"] }
+tokio = { version = "1.33.0", features = ["rt-multi-thread", "macros","signal"] }
 tokio-stream = { version = "0.1.5", features = ["net"] }
 tonic = { version = "0.11.0" }
 xlog-rs = { version = "0.3.1" }
 uuid = { version = "1.5.0", features = ["v4", "fast-rng", "macro-diagnostics"] }
 regex = { version = "1.10.2" }
 once_cell = { version = "1.19.0" }
-xcfg-rs = { version = "0.2.1", features = ["keep"] }
+signal-hook = { version = "0.3.17" }
+xcfg-rs = { version = "0.2.2" }
 dirs = { version = "5.0.1" }
 clap = { version = "4.5.1", features = ["derive"] }
 

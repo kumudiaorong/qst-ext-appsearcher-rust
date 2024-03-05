@@ -22,9 +22,10 @@ impl Main {
                 debug!("connected to {}", ep.uri());
                 client = ExtClient::new(c);
                 client
-                    .set_ext_addr(extension::ExtAddrWithId {
+                    .config_ext(extension::ExtConfigHint {
                         id: id.clone(),
                         addr: "http://".to_owned() + &addr,
+                        expire: None,
                     })
                     .await
                     .unwrap();
@@ -51,7 +52,6 @@ impl extension::main_server::Main for Main {
         request: tonic::Request<extension::Input>,
     ) -> std::result::Result<tonic::Response<extension::DisplayList>, Status> {
         let inner = request.into_inner();
-        info!("search: {}", inner.content);
         Ok(tonic::Response::new(extension::DisplayList {
             list: self
                 .config

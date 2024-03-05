@@ -777,6 +777,7 @@ dependencies = [
  "regex",
  "serde",
  "serde_yaml",
+ "signal-hook",
  "tokio",
  "tokio-stream",
  "tonic",
@@ -1052,6 +1053,7 @@ dependencies = [
  "mio",
  "num_cpus",
  "pin-project-lite",
+ "signal-hook-registry",
  "socket2",
  "tokio-macros",
  "windows-sys 0.48.0",
@@ -1456,12 +1458,11 @@ dependencies = [
 
 [[package]]
 name = "xcfg-rs"
-version = "0.2.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "97001c47d47af6a168fde48cf2c196a1bc7d8be203c3edcc625436a8b6a29ced"
+checksum = "74dd1117a7f38683b2e8262b8e026dfa345f79d5876ce60ea583025c6fb6b243"
 dependencies = [
  "serde",
- "signal-hook",
  "toml",
 ]
 

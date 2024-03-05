@@ -8,6 +8,7 @@ async fn main() -> Result<(), transport::Error> {
     let args = arg::Args::parse();
     let tl = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = tl.local_addr().unwrap().to_string();
+    let signal = appsearcher::shutdown::init();
     transport::Server::builder()
         .add_service(server::MainServer::new(
             server::Main::new(
@@ -17,6 +18,7 @@ async fn main() -> Result<(), transport::Error> {
             )
             .await,
         ))
-        .serve_with_incoming(tokio_stream::wrappers::TcpListenerStream::new(tl))
-        .await
+        .serve_with_incoming_shutdown(tokio_stream::wrappers::TcpListenerStream::new(tl), signal)
+        .await?;
+    Ok(())
 }

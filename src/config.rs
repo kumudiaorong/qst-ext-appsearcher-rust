@@ -3,8 +3,7 @@ use crate::trie::Trie;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
-    sync::{Arc, Mutex},
-    thread::spawn,
+    sync::Arc,
 };
 use xcfg::File as XFile;
 
@@ -38,7 +37,7 @@ pub struct App {
 pub struct Config {
     pub trie: Trie<Arc<App>>,
     pub by_id: HashMap<u32, Arc<App>>,
-    pub file: Arc<Mutex<XFile<Info>>>,
+    pub file: XFile<Info>,
 }
 
 impl Config {
@@ -63,23 +62,9 @@ impl Config {
             by_id.insert(id, app);
             id += 1;
         });
-        let file = Arc::new(Mutex::new(file));
-        let move_file = file.clone();
-        spawn(|| {
-            let saver = xcfg::keep::Saver::new(move_file);
-            loop {
-                match saver.run() {
-                    Ok(xcfg::keep::Action::TermSave) => {
-                        std::process::exit(0);
-                    }
-                    _ => {}
-                }
-            }
-        });
         Self { by_id, trie, file }
     }
-
     pub fn save(&self) {
-        self.file.lock().unwrap().save().unwrap();
+        self.file.save().unwrap();
     }
 }
