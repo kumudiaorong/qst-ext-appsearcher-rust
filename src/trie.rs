@@ -5,15 +5,24 @@ pub struct Trie<T> {
     miss_count: usize,
     ignore_case: bool,
 }
-
+impl<T> Default for Trie<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+impl<T> Extend<(String, T)> for Trie<T> {
+    fn extend<I: IntoIterator<Item = (String, T)>>(&mut self, iter: I) {
+        for (word, value) in iter {
+            self.insert(word, value);
+        }
+    }
+}
 #[derive(Debug)]
 struct Node<T> {
     children: BTreeMap<char, Node<T>>,
     values: Vec<T>,
 }
 impl<T> Trie<T>
-where
-    T: std::fmt::Debug,
 {
     pub fn new() -> Self {
         Self {
