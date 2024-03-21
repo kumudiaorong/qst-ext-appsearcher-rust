@@ -1,13 +1,11 @@
 use super::file::{common, extension};
-use crate::{
-    config::{self, Appattr},
-    trie::Trie,
-};
+use crate::config::{self, Appattr};
 use common::Empty;
 use extension::ext_client::ExtClient;
 use std::{collections::HashMap, sync::Mutex};
 use tonic::Status;
 use xlog::{debug, error, info};
+use xsl::collections::FuzzyFinder;
 #[derive(Debug)]
 pub struct App {
     pub name: String,
@@ -26,7 +24,7 @@ impl App {
 pub struct Main {
     id: String,
     addr: String,
-    trie: Trie<u32>,
+    fuzzy: FuzzyFinder<u32>,
     by_id: HashMap<u32, App>,
     cli: Mutex<ExtClient<tonic::transport::Channel>>,
     config: Mutex<config::Config>,
@@ -46,7 +44,9 @@ impl Main {
             };
             ((id, app), (name.clone(), id))
         });
-        let (by_id, trie): (HashMap<_, _>, Trie<_>) = ret.unzip();
+        let (by_id, list): (HashMap<_, _>, Vec<_>) = ret.unzip();
+        let mut fuzzy = FuzzyFinder::new(usize::MAX, true);
+        fuzzy.extend(list);
         let mut client;
         match ep.connect().await {
             Ok(c) => {
@@ -69,7 +69,7 @@ impl Main {
         Self {
             id,
             addr,
-            trie,
+            fuzzy,
             by_id,
             cli: Mutex::new(client),
             config: Mutex::new(config::Config::new()),
@@ -85,12 +85,13 @@ impl extension::main_server::Main for Main {
         request: tonic::Request<extension::Input>,
     ) -> std::result::Result<tonic::Response<extension::DisplayList>, Status> {
         let inner = request.into_inner();
-        let list = self
-            .trie
-            .search_prefix(inner.content)
-            .iter()
-            .map(|id| self.by_id.get(id).unwrap().to_display())
-            .collect();
+        let list = match self.fuzzy.search_prefix(inner.content) {
+            Some(list) => list
+                .iter()
+                .map(|id| self.by_id.get(id).unwrap().to_display())
+                .collect(),
+            None => vec![],
+        };
         Ok(tonic::Response::new(extension::DisplayList { list }))
     }
     async fn submit(
